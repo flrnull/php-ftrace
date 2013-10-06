@@ -4,7 +4,7 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace Profiler\Utils;
+namespace ForwardTrace\Utils;
 
 class File {
 
