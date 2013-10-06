@@ -35,9 +35,9 @@ class Trace {
      *
      * @return string|null
      */
-    public function getLastClassName () {
-        return isset($this->_trace[0]['class'])
-               ? $this->_trace[0]['class']
+    public function getLastFileName () {
+        return isset($this->_trace[0]['file'])
+               ? $this->_trace[0]['file']
                : null;
     }
 

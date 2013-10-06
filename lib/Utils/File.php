@@ -23,6 +23,12 @@ class File {
      */
     private static $_filesHandlers;
 
+    /**
+     * Not actually opens specified files, but
+     * saves it for lazy opening if needed.
+     *
+     * @param array|string $files
+     */
     public function openFiles ($files) {
         self::$_filesHandlers = array();
         self::$_fileStrings = array();
@@ -32,6 +38,9 @@ class File {
         self::$_fileNames = $files;
     }
 
+    /**
+     * Closes currently opened files
+     */
     public static function closeFiles() {
         foreach(self::$_filesHandlers as $fileHandler) {
             @fclose($fileHandler);
