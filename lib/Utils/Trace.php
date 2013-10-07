@@ -11,11 +11,6 @@ class Trace {
     private $_trace;
 
     /**
-     * @var array
-     */
-    private static $_stringsCache;
-
-    /**
      * @param int $skipLevelCount 1 means skip only Trace construct
      */
     public function __construct ($skipLevelCount = 1) {
@@ -53,7 +48,7 @@ class Trace {
      */
     private function _processTrace () {
         foreach($this->_trace as $index => $trace) {
-            $this->_trace[$index]['line_view'] = trim($this->_getStringFromFile($trace['file'], $trace['line']));
+            $this->_trace[$index]['line_view'] = $this->_getStringFromFile($trace['file'], $trace['line']);
         }
 
     }
@@ -64,18 +59,7 @@ class Trace {
      * @return string
      */
     private function _getStringFromFile ($fileName, $lineNumber) {
-        if (is_null(self::$_stringsCache)) {
-            self::$_stringsCache = array();
-        }
-        $key = "{$fileName}:{$lineNumber}";
-        if (isset(self::$_stringsCache[$key])) {
-            return self::$_stringsCache[$key];
-        }
-        $files = $this->_getTraceFiles();
-        File::openFiles($files);
         $string = File::getStringFromFile($fileName, $lineNumber);
-        File::closeFiles();
-        self::$_stringsCache[$key] = $string;
         return $string;
     }
 

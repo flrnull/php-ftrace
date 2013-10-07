@@ -6,6 +6,13 @@
 
 namespace FTrace;
 
+include_once __DIR__ . '/Utils/Time.php';
+include_once __DIR__ . '/Utils/Trace.php';
+include_once __DIR__ . '/Utils/TraceObject.php';
+include_once __DIR__ . '/Utils/File.php';
+include_once __DIR__ . '/Utils/CodeStack.php';
+
+use FTrace\Utils\CodeStack;
 use FTrace\Utils\Time;
 use FTrace\Utils\Trace;
 use FTrace\Utils\TraceObject;
@@ -20,12 +27,12 @@ class Profiler {
     /**
      * @var array
      */
-    private static $_previousTrace;
+    private $_result;
 
     /**
-     * @var array
+     * @var CodeStack
      */
-    private $_result;
+    private $_codeStack;
 
     /**
      * @return Profiler
@@ -70,17 +77,18 @@ class Profiler {
         $this->_result['counter']++;
         $trace = new Trace();
 
-        if ($this->_tickIsInternal($trace) || $this->_tickIsSameAsPrevious($trace)) {
+        if ($this->_tickIsInternal($trace)) {
             $this->_tickEndTime();
             return;
         }
 
         $obTrace = new TraceObject($trace->getData());
-        echo "\n";
-        echo $obTrace->getFile() . ":" . $obTrace->getLine();
-        echo "\n";
-        echo $obTrace->getLineView();
-        echo "\n";
+        $code = $this->_codeStack;
+
+        $code->pushBlock($obTrace);
+        if ($code->blockCompleted()) {
+            $this->_addToResult($code);
+        }
 
         $this->_tickEndTime();
     }
@@ -105,48 +113,43 @@ class Profiler {
     }
 
     /**
-     * @param Trace $trace
-     * @return bool
+     * @param TraceObject $obTrace
      */
-    private function _tickIsSameAsPrevious (Trace $trace) {
-        if (is_null(self::$_previousTrace)) {
-            self::$_previousTrace = array(
-                'deep' => null,
-                'file' => null,
-                'line' => null,
-            );
-            return false;
-        }
-        $traceData = $trace->getData();
-        $deep = count($traceData);
-
-        if ($deep === self::$_previousTrace['deep']
-         && $traceData[0]['file'] === self::$_previousTrace['file']
-         && $traceData[0]['line'] === self::$_previousTrace['line']
-        ) {
-            $result = true;
-        } else {
-            $result = false;
-        }
-
-        self::$_previousTrace = array(
-            'deep' => $deep,
-            'file' => $traceData[0]['file'],
-            'line' => $traceData[0]['line'],
-        );
-        return $result;
+    private function _addToResult (CodeStack $code) {
+        $obTrace = $code->getTrace();
+        $string = "\n";
+        $string .=$obTrace->getFile() . ":" . $obTrace->getLine();
+        $string .="\n";
+        $string .=$obTrace->getLineView();
+        $string .="\n";
+        $this->_result['result'] .= $string;
     }
 
     /**
      * Inits result structure
      */
     private function _initResultStructure () {
+        $this->_codeStack = new CodeStack();
         $this->_result = array(
             'counter'       => 0,
             'time_passed'   => 0,
             'profiler_time' => 0,
             'code_time'     => 0,
+            'result'        => "",
+        );
+    }
+
+    /**
+     * @param $obTrace
+     * @throws ProfilerException
+     */
+    private function _throwException ($obTrace) {
+        throw new ProfilerException(
+            "Code uncompleted blocks " . $obTrace->getFile() . ":" . $obTrace->getLine()
+            . "\n" . $obTrace->getLineView() . "\n"
         );
     }
 
 }
+
+class ProfilerException extends \Exception {}
