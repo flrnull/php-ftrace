@@ -12,7 +12,7 @@ include_once __DIR__ . '/../lib/Utils/Trace.php';
 include_once __DIR__ . '/../lib/Utils/TraceObject.php';
 include_once __DIR__ . '/../lib/Utils/File.php';
 
-use ForwardTrace\Profiler;
+use FTrace\Profiler;
 
 class test {
 

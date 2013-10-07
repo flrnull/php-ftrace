@@ -1,4 +1,4 @@
-php-forward-trace
+php-ftrace
 ============
 
 _Under construction_
@@ -9,7 +9,7 @@ Usage
 ```php
 <?php
 declare(ticks = 1);
-use ForwardTrace\Profiler;
+use FTrace\Profiler;
 
 Profiler::start();
 // Some code

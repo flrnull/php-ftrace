@@ -4,11 +4,11 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace ForwardTrace;
+namespace FTrace;
 
-use ForwardTrace\Utils\Time;
-use ForwardTrace\Utils\Trace;
-use ForwardTrace\Utils\TraceObject;
+use FTrace\Utils\Time;
+use FTrace\Utils\Trace;
+use FTrace\Utils\TraceObject;
 
 class Profiler {
 

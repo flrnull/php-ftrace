@@ -4,7 +4,7 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace ForwardTrace\Utils;
+namespace FTrace\Utils;
 
 class TraceObject {
 
