@@ -10,12 +10,15 @@ include_once __DIR__ . '/Utils/Time.php';
 include_once __DIR__ . '/Utils/Trace.php';
 include_once __DIR__ . '/Utils/TraceObject.php';
 include_once __DIR__ . '/Utils/File.php';
-include_once __DIR__ . '/Utils/CodeStack.php';
+include_once __DIR__ . '/Utils/Code.php';
+include_once __DIR__ . '/Utils/Code/Block.php';
+include_once __DIR__ . '/Utils/Code/Unit.php';
+include_once __DIR__ . '/Utils/Code/Call.php';
 
-use FTrace\Utils\CodeStack;
 use FTrace\Utils\Time;
 use FTrace\Utils\Trace;
 use FTrace\Utils\TraceObject;
+use FTrace\Utils\Code;
 
 class Profiler {
 
@@ -30,9 +33,9 @@ class Profiler {
     private $_result;
 
     /**
-     * @var CodeStack
+     * @var Code
      */
-    private $_codeStack;
+    private $_code;
 
     /**
      * @return Profiler
@@ -70,6 +73,7 @@ class Profiler {
     public function stopProfiling () {
         $this->_result['time_passed'] = Time::stop('__profiler_global');
         $this->_result['code_time'] = (float)$this->_result['time_passed'] - (float)$this->_result['profiler_time'];
+        $this->_result['calls'] = $this->_code->getCalls();
     }
 
     public function tickHandler () {
@@ -83,12 +87,7 @@ class Profiler {
         }
 
         $obTrace = new TraceObject($trace->getData());
-        $code = $this->_codeStack;
-
-        $code->pushBlock($obTrace);
-        if ($code->blockCompleted()) {
-            $this->_addToResult($code);
-        }
+        $this->_code->pushCode($obTrace);
 
         $this->_tickEndTime();
     }
@@ -113,23 +112,10 @@ class Profiler {
     }
 
     /**
-     * @param TraceObject $obTrace
-     */
-    private function _addToResult (CodeStack $code) {
-        $obTrace = $code->getTrace();
-        $string = "\n";
-        $string .=$obTrace->getFile() . ":" . $obTrace->getLine();
-        $string .="\n";
-        $string .=$obTrace->getLineView();
-        $string .="\n";
-        $this->_result['result'] .= $string;
-    }
-
-    /**
      * Inits result structure
      */
     private function _initResultStructure () {
-        $this->_codeStack = new CodeStack();
+        $this->_code = new Code();
         $this->_result = array(
             'counter'       => 0,
             'time_passed'   => 0,
