@@ -8,7 +8,6 @@ namespace FTrace;
 
 include_once __DIR__ . '/Utils/Time.php';
 include_once __DIR__ . '/Utils/Trace.php';
-include_once __DIR__ . '/Utils/TraceObject.php';
 include_once __DIR__ . '/Utils/File.php';
 include_once __DIR__ . '/Utils/Code.php';
 include_once __DIR__ . '/Utils/Code/Block.php';
@@ -17,7 +16,6 @@ include_once __DIR__ . '/Utils/Code/Call.php';
 
 use FTrace\Utils\Time;
 use FTrace\Utils\Trace;
-use FTrace\Utils\TraceObject;
 use FTrace\Utils\Code;
 
 class Profiler {
@@ -79,14 +77,13 @@ class Profiler {
     public function tickHandler () {
         $this->_tickStartTime();
         $this->_result['counter']++;
-        $trace = new Trace();
+        $obTrace = new Trace(debug_backtrace());
 
-        if ($this->_tickIsInternal($trace)) {
+        if ($this->_tickIsInternal($obTrace)) {
             $this->_tickEndTime();
             return;
         }
 
-        $obTrace = new TraceObject($trace->getData());
         $this->_code->pushCode($obTrace);
 
         $this->_tickEndTime();
@@ -108,7 +105,7 @@ class Profiler {
      * @return bool
      */
     private function _tickIsInternal (Trace $trace) {
-        return $trace->getLastFileName() === __FILE__;
+        return $trace->getFile() === __FILE__;
     }
 
     /**

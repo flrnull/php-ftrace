@@ -17,3 +17,8 @@ $result = Profiler::stop();
 
 var_export($result);
 ```
+
+Roadmap
+_______
+* Realtime trace
+* Deep limit

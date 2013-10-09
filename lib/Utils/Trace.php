@@ -8,49 +8,68 @@ namespace FTrace\Utils;
 
 class Trace {
 
-    private $_trace;
+    /**
+     * @var string
+     */
+    private $_file;
+    /**
+     * @var string
+     */
+    private $_line;
+    /**
+     * @var string
+     */
+    private $_function;
+    /**
+     * @var string
+     */
+    private $_class;
+    /**
+     * @var mixed
+     */
+    private $_object;
+    /**
+     * @var string
+     */
+    private $_type;
+    /**
+     * @var array
+     */
+    private $_args;
+    /**
+     * @var string
+     */
+    private $_line_view;
 
     /**
-     * @param int $skipLevelCount 1 means skip only Trace construct
+     * @var array
      */
-    public function __construct ($skipLevelCount = 1) {
-        $this->_trace = array_slice(debug_backtrace(), $skipLevelCount);
-        $this->_processTrace();
-    }
+    private $_traceSource;
 
     /**
-     * @return int
+     * @param array $traceStack debug_backtrace() process
      */
-    public function getCurrentDeep () {
-        return count($this->_trace);
-    }
-
-    /**
-     * Get latest parent's class name
-     *
-     * @return string|null
-     */
-    public function getLastFileName () {
-        return isset($this->_trace[0]['file'])
-               ? $this->_trace[0]['file']
-               : null;
-    }
-
-    /**
-     * @return array
-     */
-    public function getData () {
-        return $this->_trace;
+    public function __construct (array $traceStack) {
+        $processedTrace = $this->_preProcessTraceStack($traceStack);
+        foreach($processedTrace[0] as $param => $value) {
+            $localParam = "_{$param}";
+            $this->$localParam = $value;
+        }
+        $this->_traceSource = $traceStack;
     }
 
     /**
      * Fills extra trace data
+     *
+     * @param array $traceStack
+     * @return array
      */
-    private function _processTrace () {
-        foreach($this->_trace as $index => $trace) {
-            $this->_trace[$index]['line_view'] = $this->_getStringFromFile($trace['file'], $trace['line']);
+    private function _preProcessTraceStack (array $traceStack) {
+        $slicedStack = array_slice($traceStack, 1);
+        foreach($slicedStack as $index => $trace) {
+            $slicedStack[$index]['line_view'] = $this->_getStringFromFile($trace['file'], $trace['line']);
         }
-
+        return $slicedStack;
     }
 
     /**
@@ -63,8 +82,68 @@ class Trace {
         return $string;
     }
 
-    private function _getTraceFiles () {
-        return array_unique(array_map(function($trace) { return $trace['file']; }, $this->_trace));
+
+    /**
+     * @return array
+     */
+    public function getArgs () {
+        return $this->_args;
+    }
+
+    /**
+     * @return string
+     */
+    public function getClass () {
+        return $this->_class;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFile () {
+        return $this->_file;
+    }
+
+    /**
+     * @return string
+     */
+    public function getFunction () {
+        return $this->_function;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLine () {
+        return $this->_line;
+    }
+
+    /**
+     * @return string
+     */
+    public function getLineView () {
+        return $this->_line_view;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getObject () {
+        return $this->_object;
+    }
+
+    /**
+     * @return string
+     */
+    public function getType () {
+        return $this->_type;
+    }
+
+    /**
+     * @return array
+     */
+    public function getTraceSource () {
+        return $this->_traceSource;
     }
 
 }
