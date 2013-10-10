@@ -65,11 +65,10 @@ class Trace {
      * @return array
      */
     private function _preProcessTraceStack (array $traceStack) {
-        $slicedStack = array_slice($traceStack, 1);
-        foreach($slicedStack as $index => $trace) {
-            $slicedStack[$index]['line_view'] = $this->_getStringFromFile($trace['file'], $trace['line']);
+        foreach($traceStack as $index => $trace) {
+            $traceStack[$index]['line_view'] = $this->_getStringFromFile($trace['file'], $trace['line']);
         }
-        return $slicedStack;
+        return $traceStack;
     }
 
     /**

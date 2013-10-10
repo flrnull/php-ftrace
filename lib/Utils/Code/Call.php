@@ -22,6 +22,11 @@ class Call {
      */
     private $_isOpen;
 
+    /**
+     * @var Unit
+     */
+    private $_previousUnit;
+
     public function __construct (Block $block) {
         $this->_blocksList = array($block);
         $this->_isOpen = true;
@@ -54,13 +59,14 @@ class Call {
      */
     public function addUnit (Unit $unit) {
         $lastBlock = $this->getLastBlock();
-        if ($lastBlock->isOpen()) {
+        if ($lastBlock->blockIsOpen($unit)) {
             $lastBlock->addUnit($unit);
         } else {
             $block = new Block($unit);
             $this->addBlock($block);
-            $this->_calcCallIsOpen($block);
+            $this->_tryToCloseCurrentCall($block);
         }
+        $this->_previousUnit = $unit;
     }
 
     /**
@@ -70,11 +76,21 @@ class Call {
         return $this->_isOpen;
     }
 
+    private function _closeCurrentCall () {
+        $this->_isOpen = false;
+    }
+
     /**
      * @param Block $block
      */
-    private function _calcCallIsOpen (Block $block) {
-        throw new \Exception("Not imp");
+    private function _tryToCloseCurrentCall (Block $block) {
+        if (is_null($this->_previousUnit))
+            return;
+
+        $prevUnit = $this->_previousUnit;
+        $currentUnit = $block->getLastUnit();
+        if ($prevUnit->getDepth() > $currentUnit->getDepth())
+            $this->_closeCurrentCall();
     }
 
 }

@@ -84,7 +84,9 @@ class Profiler {
             return;
         }
 
-        $this->_code->pushCode($obTrace);
+        //$this->_code->pushCode($obTrace);
+
+        echo "\n";echo $obTrace->getFile();echo " : ";echo $obTrace->getLine();echo " : "; echo $obTrace->getLineView(); echo " "; echo json_encode($obTrace->getArgs());
 
         $this->_tickEndTime();
     }
@@ -105,7 +107,7 @@ class Profiler {
      * @return bool
      */
     private function _tickIsInternal (Trace $trace) {
-        return $trace->getFile() === __FILE__;
+        return (is_null($trace->getFile()) || $trace->getFile() === __FILE__);
     }
 
     /**

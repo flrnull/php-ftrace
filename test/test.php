@@ -20,27 +20,33 @@ class test {
     }
 
     public function func1 () {
-        for($i = 0; $i < 2; $i++)
-            $this->_some1 = $i;
-        echo "Func1\n";
+        echo "\nfunc1 starts";
+        if (true)
+            $this->_some1 = 'Braced block body';
+
+        $this->_some1 = 4;
+
         $this->func2();
+        echo "\n//func1";
     }
 
     public function func2 () {
+        echo "\nfunc2 starts";
         for($i = 0; $i < 2; $i++) {
             $this->_some2 = $i;
         }
-        echo "Func2\n";
         $c = 1;
         $d = 2;
         $this->func3($c, $d);
+        echo "\n//func2";
     }
 
     public function func3 ($a, $b) {
+        echo "\nfunc3 starts";
         for($i = 0; $i < 2; $i++) {
             $this->_some3 = $i;
         }
-        echo "Func3\n";
+        echo "\n//func3";
     }
 }
 
