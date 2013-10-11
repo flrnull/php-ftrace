@@ -4,11 +4,12 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace FTrace\Utils;
+namespace FTrace\Utils\Code;
 
 use FTrace\Utils\Code\Unit;
 use FTrace\Utils\Code\Call;
 use FTrace\Utils\Code\Block;
+use FTrace\Utils\Trace;
 
 class Code {
 
@@ -49,8 +50,7 @@ class Code {
     }
 
     private function _initCall (Unit $unit) {
-        $block = new Block($unit);
-        $call = new Call($block);
+        $call = Call::create($unit);
         $this->_addCallToStack($call);
     }
 

@@ -9,14 +9,14 @@ namespace FTrace;
 include_once __DIR__ . '/Utils/Time.php';
 include_once __DIR__ . '/Utils/Trace.php';
 include_once __DIR__ . '/Utils/File.php';
-include_once __DIR__ . '/Utils/Code.php';
+include_once __DIR__ . '/Utils/Code/Code.php';
 include_once __DIR__ . '/Utils/Code/Block.php';
 include_once __DIR__ . '/Utils/Code/Unit.php';
 include_once __DIR__ . '/Utils/Code/Call.php';
 
 use FTrace\Utils\Time;
 use FTrace\Utils\Trace;
-use FTrace\Utils\Code;
+use FTrace\Utils\Code\Code;
 
 class Profiler {
 
@@ -84,9 +84,10 @@ class Profiler {
             return;
         }
 
-        //$this->_code->pushCode($obTrace);
+        $this->_code->pushCode($obTrace);
 
-        echo "\n";echo $obTrace->getFile();echo " : ";echo $obTrace->getLine();echo " : "; echo $obTrace->getLineView(); echo " "; echo json_encode($obTrace->getArgs());
+        $str = "\n";$str .= basename($obTrace->getFile());echo " : ";$str .= $obTrace->getLine();$str .= " (depth = " . count($obTrace->getTraceSource()) . ") : "; $str .= $obTrace->getLineView(); $str .= " "; $str .= (count($obTrace->getArgs())) ? json_encode($obTrace->getArgs()) : "";
+        $this->_result['debug'][] = $str;
 
         $this->_tickEndTime();
     }
@@ -120,7 +121,8 @@ class Profiler {
             'time_passed'   => 0,
             'profiler_time' => 0,
             'code_time'     => 0,
-            'result'        => "",
+            'calls'         => array(),
+            'debug'         => "",
         );
     }
 

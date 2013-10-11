@@ -6,10 +6,6 @@
 
 namespace FTrace\Utils\Code;
 
-/**
- * Class Call
- * @package FTrace\Utils\Code
- */
 class Call {
 
     /**
@@ -48,9 +44,17 @@ class Call {
     }
 
     /**
+     * @return Block
+     */
+    public function getFirstBlock () {
+        return $this->_blocksList[0];
+    }
+
+    /**
      * @param Block $block
      */
     public function addBlock (Block $block) {
+        $block->setPreviousBlocks($this->_blocksList);
         $this->_blocksList[] = $block;
     }
 
@@ -64,7 +68,7 @@ class Call {
         } else {
             $block = new Block($unit);
             $this->addBlock($block);
-            $this->_tryToCloseCurrentCall($block);
+            $this->_tryToCloseCurrentCall($unit);
         }
         $this->_previousUnit = $unit;
     }
@@ -76,21 +80,42 @@ class Call {
         return $this->_isOpen;
     }
 
+    public static function create (Unit $unit) {
+        $block = new Block($unit);
+        return new Call($block);
+    }
+
     private function _closeCurrentCall () {
+        $this->_moveLastBlockToBegin();
         $this->_isOpen = false;
     }
 
     /**
-     * @param Block $block
+     * @param Unit $lastAddedUnit
      */
-    private function _tryToCloseCurrentCall (Block $block) {
+    private function _tryToCloseCurrentCall (Unit $lastAddedUnit) {
         if (is_null($this->_previousUnit))
             return;
 
         $prevUnit = $this->_previousUnit;
-        $currentUnit = $block->getLastUnit();
-        if ($prevUnit->getDepth() > $currentUnit->getDepth())
+
+        if ($prevUnit->getDepth() > $lastAddedUnit->getDepth()) {
             $this->_closeCurrentCall();
+        }
+    }
+
+    private function _moveLastBlockToBegin () {
+        $blocks = $this->getBlocks();
+        $callBlock = array_pop($blocks);
+        array_unshift($blocks, $callBlock);
+        $this->_setBlocks($blocks);
+    }
+
+    /**
+     * @param Block[] $blocks
+     */
+    private function _setBlocks (array $blocks) {
+        $this->_blocksList = $blocks;
     }
 
 }
