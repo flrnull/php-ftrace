@@ -77,9 +77,10 @@ class Unit {
 
     /**
      * @param Unit $unit
+     * @param int $prevDepth
      */
-    public function initCall (Unit $unit) {
-        $this->_call = Call::create($unit);
+    public function initCall (Unit $unit, $prevDepth = null) {
+        $this->_call = Call::create($unit, $prevDepth);
     }
 
     /**
@@ -99,19 +100,19 @@ class Unit {
     }
 
     /**
-     * @param Unit $prevUnit
+     * @param int $prevDepth
      * @return bool
      */
-    public function isCallFirstUnit (Unit $prevUnit) {
-        return ($this->getDepth() > $prevUnit->getDepth());
+    public function isCallFirstUnit ($prevDepth) {
+        return ($this->getDepth() > $prevDepth);
     }
 
     /**
-     * @param Unit $prevUnit
+     * @param int $prevDepth
      * @return bool
      */
-    public function isCallClosingUnit (Unit $prevUnit) {
-        return ($this->getDepth() < $prevUnit->getDepth());
+    public function isCallClosingUnit ($prevDepth) {
+        return ($this->getDepth() < $prevDepth);
     }
 
     public function mockReplaceWithUnit (Unit $unit) {

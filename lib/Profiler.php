@@ -71,7 +71,7 @@ class Profiler {
     public function stopProfiling () {
         $this->_result['time_passed'] = Time::stop('__profiler_global');
         $this->_result['code_time'] = (float)$this->_result['time_passed'] - (float)$this->_result['profiler_time'];
-        $this->_result['calls'] = $this->_code->getCalls();
+        $this->_result['code'] = $this->_code->getBlocks();
     }
 
     public function tickHandler () {
@@ -121,7 +121,7 @@ class Profiler {
             'time_passed'   => 0,
             'profiler_time' => 0,
             'code_time'     => 0,
-            'calls'         => array(),
+            'code'          => array(),
             'debug'         => "",
         );
     }

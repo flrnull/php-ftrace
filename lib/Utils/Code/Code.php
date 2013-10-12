@@ -16,7 +16,7 @@ class Code {
     /**
      * @var int
      */
-    private $_currentCallPointer;
+    private $_currentBlockPointer;
 
     /**
      * @var int
@@ -24,101 +24,117 @@ class Code {
     private $_depth;
 
     /**
-     * @var Call[]
+     * @var Block[]
      */
-    private $_calls;
+    private $_blocks;
 
     public function __construct () {
-        $this->_calls = array();
+        $this->_blocks = array();
     }
 
+    /**
+     * @param Trace $obTrace
+     */
     public function pushCode (Trace $obTrace) {
-        // Block - блок строчек кода (массив строчек Unit)
-        // Unit - единица кода (файл, номер строки, содержание строки, изначальный трейс массив, опционально может содержать в себе новый Call
-        // Call - метод/функция (Состоит из блоков кода Block)
-
         $unit = new Unit($obTrace);
 
-        if ($this->_firstCall() || $this->_noOpenCalls()) {
-            $this->_initCall($unit);
+        if ($this->_firstBlock() || $this->_noOpenBlocks($unit)) {
+            $this->_initBlock($unit);
         } else {
-            $this->_pushToCurrentCall($unit);
+            $this->_pushToCurrentBlock($unit);
         }
     }
 
     /**
-     * @return array
+     * @return Block[]
      */
-    public function getCalls () {
-        return $this->_calls;
+    public function getBlocks () {
+        return $this->_blocks;
     }
 
-    private function _pushToCurrentCall (Unit $unit) {
-        $this->_getCurrentCall()->addUnit($unit);
+    /**
+     * @param Unit $unit
+     */
+    private function _pushToCurrentBlock (Unit $unit) {
+        $this->_getCurrentBlock()->addUnit($unit);
     }
 
-    private function _initCall (Unit $unit) {
-        if ($this->_firstCall()) {
+    /**
+     * @param Unit $unit
+     */
+    private function _initBlock (Unit $unit) {
+        if ($this->_firstBlock()) {
             $this->_depth = $unit->getDepth();
         }
 
         if ($this->_depth > $unit->getDepth()) {
-            return;
+            return; // don't trace higher code levels
         }
 
-        $call = Call::create($unit);
-        if ($this->_depth === $unit->getDepth()) {
-            $call->close();
-        }
-
-        $this->_addCallToStack($call);
+        $block = new Block($unit, array(), $unit->getDepth());
+        $this->_addBlock($block);
     }
 
-    private function _addCallToStack (Call $call) {
-        $this->_calls[] = $call;
+    /**
+     * @param Block $block
+     */
+    private function _addBlock (Block $block) {
+        $this->_blocks[] = $block;
         $this->_stackPointerInc();
     }
 
-    private function _noOpenCalls () {
-        $openCalls = $this->_getOpenCalls();
-        if (count($openCalls) === 0) {
+    /**
+     * @param Unit $unit
+     * @return bool
+     */
+    private function _noOpenBlocks (Unit $unit) {
+        $openBlocks = $this->_getOpenBlocks($unit);
+        if (count($openBlocks) === 0) {
             return true;
         }
         return false;
     }
 
-    private function _getOpenCalls () {
-        $openCalls = array();
+    /**
+     * @param Unit $Unit
+     * @return Block[]
+     */
+    private function _getOpenBlocks (Unit $Unit) {
+        $openBlocks = array();
 
-        $stackPointNum = $this->_currentCallPointer;
+        $stackPointNum = $this->_currentBlockPointer;
         if (is_null($stackPointNum))
-            return $openCalls;
+            return $openBlocks;
 
         while($stackPointNum >= 0) {
-            if ($this->_calls[$stackPointNum]->isOpen())
-                $openCalls[] = $this->_calls[$stackPointNum];
+            if ($this->_blocks[$stackPointNum]->isOpen($Unit)) {
+                $openBlocks[] = $this->_blocks[$stackPointNum];
+            }
             $stackPointNum--;
         }
 
-        return $openCalls;
-    }
-
-    private function _firstCall () {
-        return is_null($this->_currentCallPointer);
+        return $openBlocks;
     }
 
     /**
-     * @return Call
+     * @return bool
      */
-    private function _getCurrentCall () {
-        return $this->_calls[$this->_currentCallPointer];
+    private function _firstBlock () {
+        return is_null($this->_currentBlockPointer);
+    }
+
+    /**
+     * @return Block
+     */
+    private function _getCurrentBlock () {
+        return $this->_blocks[$this->_currentBlockPointer];
     }
 
     private function _stackPointerInc () {
-        if (is_null($this->_currentCallPointer)) {
-            $this->_currentCallPointer = 0;
+        if (is_null($this->_currentBlockPointer)) {
+            $this->_currentBlockPointer = 0;
         } else {
-            $this->_currentCallPointer++;
+            $this->_currentBlockPointer++;
         }
     }
 

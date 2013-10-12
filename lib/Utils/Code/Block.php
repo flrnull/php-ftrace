@@ -34,6 +34,11 @@ class Block {
     private $_depth;
 
     /**
+     * @var int
+     */
+    private $_prevCallDepth;
+
+    /**
      * @var bool|null
      */
     private $_isLoop;
@@ -51,8 +56,10 @@ class Block {
     /**
      * @param Unit $unit
      * @param Block[] $previousBlocks
+     * @param int $prevCallDepth
      */
-    public function __construct (Unit $unit, array $previousBlocks = array()) {
+    public function __construct (Unit $unit, array $previousBlocks = array(), $prevCallDepth = null) {
+        $this->_prevCallDepth = $prevCallDepth;
         $this->setPreviousBlocks($previousBlocks);
         $this->addUnit($unit);
     }
@@ -65,37 +72,22 @@ class Block {
         if (is_null($prevUnit)) {
             echo "\nBlock: It's first unit of block, simple create block with one unit: " . $unit->getLineView() . " depth: " . $unit->getDepth() . "\n";
             $this->_depth = $unit->getDepth();
-            $prevBlock = $this->_getPreviousBlock();
-            if (is_null($prevBlock)) {
-                echo "\nBlock: no previous block has been pushed, use new unit\n";
-
-                include_once '/home/quiver/sources/kint/Kint.class.php';
-                \Kint::dump(1);
-
-                $prevUnit = $unit;
-            } else {
-                echo "\nBlock: has previous block, use it's last unit\n";
-                $prevUnit = $prevBlock->getLastUnit();
-
-                if ($prevUnit->getDepth() == 0) {
-                    include_once '/home/quiver/sources/kint/Kint.class.php';
-                    \Kint::dump($prevBlock);
-                }
-            }
         }
 
-        if ($unit->isCallFirstUnit($prevUnit)) {
-            echo "\nBlock: Unit opens new call (prev [".$prevUnit->getLineView().":".$prevUnit->getDepth()."] new [".$unit->getLineView().":".$unit->getDepth()."]), create mock\n";
+        $prevDepth = is_null($prevUnit) ? $this->_prevCallDepth : $prevUnit->getDepth();
+
+        if ($unit->isCallFirstUnit($prevDepth)) {
+            echo "\nBlock: Unit opens new call (prev [".$prevDepth."] new [".$unit->getLineView().":".$unit->getDepth()."]), create mock\n";
             $mockCallUnit = Unit::getMockForCall();
-            $mockCallUnit->initCall($unit);
+            $mockCallUnit->initCall($unit, $unit->getDepth());
             $this->_addUnitPostProcessing($mockCallUnit);
             $this->_lastCallMock = $mockCallUnit;
-        } elseif ($unit->isCallClosingUnit($prevUnit)) {
+        } elseif ($unit->isCallClosingUnit($prevDepth)) {
             echo "\nBlock: Unit closes new call , replace mock for this unit\n";
             $this->_lastCallMock->mockReplaceWithUnit($unit);
             $this->_lastCallMock = null;
         } else {
-            echo "\nBlock: Unit not opens or closes call (prev [".$prevUnit->getLineView().":".$prevUnit->getDepth()."] new [".$unit->getLineView().":".$unit->getDepth()."]), simple processing\n";
+            echo "\nBlock: Unit not opens or closes call (prev [".$prevDepth."] new [".$unit->getLineView().":".$unit->getDepth()."]), simple processing\n";
             $this->_addUnitPostProcessing($unit);
         }
     }
@@ -164,7 +156,7 @@ class Block {
      * @param Unit $newUnit
      * @return bool
      */
-    public function blockIsOpen (Unit $newUnit) {
+    public function isOpen (Unit $newUnit) {
         if ($this->_lastUnitIsCallMock()) {
             return true;
         }
