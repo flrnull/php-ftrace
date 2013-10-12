@@ -23,6 +23,13 @@ class Unit {
      * @param Trace $obTrace
      */
     public function __construct (Trace $obTrace) {
+        $this->_fillVarsFromTrace($obTrace);
+    }
+
+    /**
+     * @param Trace $obTrace
+     */
+    private function _fillVarsFromTrace (Trace $obTrace) {
         $this->_lineNumber = (int)$obTrace->getLine();
         $this->_lineView = trim($obTrace->getLineView());
         $this->_depth = count($obTrace->getTraceSource());
@@ -62,6 +69,13 @@ class Unit {
     }
 
     /**
+     * @return mixed
+     */
+    public function getTrace () {
+        return $this->_obTrace;
+    }
+
+    /**
      * @param Unit $unit
      */
     public function initCall (Unit $unit) {
@@ -82,6 +96,40 @@ class Unit {
     public function isOpeningBrace () {
         $braceInLine = $this->_stackReturnExtraBrace($this->_lineView, '{', '}');
         return $braceInLine === '{';
+    }
+
+    /**
+     * @param Unit $prevUnit
+     * @return bool
+     */
+    public function isCallFirstUnit (Unit $prevUnit) {
+        return ($this->getDepth() > $prevUnit->getDepth());
+    }
+
+    /**
+     * @param Unit $prevUnit
+     * @return bool
+     */
+    public function isCallClosingUnit (Unit $prevUnit) {
+        return ($this->getDepth() < $prevUnit->getDepth());
+    }
+
+    public function mockReplaceWithUnit (Unit $unit) {
+        $this->_fillVarsFromTrace($unit->getTrace());
+    }
+
+    /**
+     * @return Unit
+     */
+    public static function getMockForCall () {
+        return new self(new Trace(array(array('object' => 'Mock'))));
+    }
+
+    /**
+     * @return bool
+     */
+    public function isMock () {
+        return (is_null($this->_obTrace->getLine()) && is_null($this->_obTrace->getLineView()));
     }
 
     /**

@@ -54,7 +54,6 @@ class Call {
      * @param Block $block
      */
     public function addBlock (Block $block) {
-        $block->setPreviousBlocks($this->_blocksList);
         $this->_blocksList[] = $block;
     }
 
@@ -62,11 +61,15 @@ class Call {
      * @param Unit $unit
      */
     public function addUnit (Unit $unit) {
+        echo "\nCall: Start processing " . $unit->getLineView() . " with depth " . $unit->getDepth() . "\n";
         $lastBlock = $this->getLastBlock();
+        echo "\nCall: Last block has " . count($lastBlock->getUnits()) . " units\n";
         if ($lastBlock->blockIsOpen($unit)) {
+            echo "\nCall: Last block is open ->addUnit() \n";
             $lastBlock->addUnit($unit);
         } else {
-            $block = new Block($unit);
+            echo "\nCall: Last block is closed new Block(unit); this->addBlock \n";
+            $block = new Block($unit, $this->getBlocks());
             $this->addBlock($block);
             $this->_tryToCloseCurrentCall($unit);
         }
@@ -78,6 +81,10 @@ class Call {
      */
     public function isOpen () {
         return $this->_isOpen;
+    }
+
+    public function close () {
+        $this->_closeCurrentCall();
     }
 
     public static function create (Unit $unit) {

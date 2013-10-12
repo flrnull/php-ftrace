@@ -75,28 +75,28 @@ class Profiler {
     }
 
     public function tickHandler () {
-        $this->_tickStartTime();
+        $this->_tickSetStartTime();
         $this->_result['counter']++;
         $obTrace = new Trace(debug_backtrace());
 
         if ($this->_tickIsInternal($obTrace)) {
-            $this->_tickEndTime();
+            $this->_tickSetFinishTime();
             return;
         }
 
         $this->_code->pushCode($obTrace);
 
-        $str = "\n";$str .= basename($obTrace->getFile());echo " : ";$str .= $obTrace->getLine();$str .= " (depth = " . count($obTrace->getTraceSource()) . ") : "; $str .= $obTrace->getLineView(); $str .= " "; $str .= (count($obTrace->getArgs())) ? json_encode($obTrace->getArgs()) : "";
+        $str = "\n";$str .= basename($obTrace->getFile());$str .= " : ";$str .= $obTrace->getLine();$str .= " (depth = " . count($obTrace->getTraceSource()) . ") : "; $str .= $obTrace->getLineView(); $str .= " "; $str .= (count($obTrace->getArgs())) ? json_encode($obTrace->getArgs()) : "";
         $this->_result['debug'][] = $str;
 
-        $this->_tickEndTime();
+        $this->_tickSetFinishTime();
     }
 
-    private function _tickStartTime () {
+    private function _tickSetStartTime () {
         Time::start('__profiler_tick');
     }
 
-    private function _tickEndTime () {
+    private function _tickSetFinishTime () {
         $tickTime = Time::stop('__profiler_tick');
         $this->_result['profiler_time'] = (float)$tickTime + (float)$this->_result['profiler_time'];
     }

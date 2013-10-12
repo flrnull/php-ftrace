@@ -55,6 +55,8 @@ class test {
     }
 }
 
+echo "<pre>";
+
 Profiler::start();
 
 $test = new test();
@@ -62,13 +64,13 @@ $test->func1();
 
 $result = Profiler::stop();
 
-echo "<pre>";
 
 function render($string, $tabCount) {
     echo str_repeat('— — ', $tabCount) . '> ' . $string . "\n";
 }
 /* @var $call FTrace\Utils\Code\Call */
 foreach($result['calls'] as $call) {
+    echo "- call start -\n";
     $blocks = $call->getBlocks();
     $openCallBlock = array_shift($blocks); /* @var $openCallBlock FTrace\Utils\Code\Block */
     render($openCallBlock->getFirstUnit()->getLineView(), 1);
@@ -79,3 +81,6 @@ foreach($result['calls'] as $call) {
         }
     }
 }
+
+include_once '/home/quiver/sources/kint/Kint.class.php';
+Kint::dump($result['debug']);

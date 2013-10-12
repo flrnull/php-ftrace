@@ -13,15 +13,23 @@ use FTrace\Utils\Trace;
 
 class Code {
 
-    private $_stackPointer;
+    /**
+     * @var int
+     */
+    private $_currentCallPointer;
+
+    /**
+     * @var int
+     */
+    private $_depth;
 
     /**
      * @var Call[]
      */
-    private $_callStack;
+    private $_calls;
 
     public function __construct () {
-        $this->_callStack = array();
+        $this->_calls = array();
     }
 
     public function pushCode (Trace $obTrace) {
@@ -42,7 +50,7 @@ class Code {
      * @return array
      */
     public function getCalls () {
-        return $this->_callStack;
+        return $this->_calls;
     }
 
     private function _pushToCurrentCall (Unit $unit) {
@@ -50,12 +58,24 @@ class Code {
     }
 
     private function _initCall (Unit $unit) {
+        if ($this->_firstCall()) {
+            $this->_depth = $unit->getDepth();
+        }
+
+        if ($this->_depth > $unit->getDepth()) {
+            return;
+        }
+
         $call = Call::create($unit);
+        if ($this->_depth === $unit->getDepth()) {
+            $call->close();
+        }
+
         $this->_addCallToStack($call);
     }
 
     private function _addCallToStack (Call $call) {
-        $this->_callStack[] = $call;
+        $this->_calls[] = $call;
         $this->_stackPointerInc();
     }
 
@@ -70,13 +90,13 @@ class Code {
     private function _getOpenCalls () {
         $openCalls = array();
 
-        $stackPointNum = $this->_stackPointer;
+        $stackPointNum = $this->_currentCallPointer;
         if (is_null($stackPointNum))
             return $openCalls;
 
         while($stackPointNum >= 0) {
-            if ($this->_callStack[$stackPointNum]->isOpen())
-                $openCalls[] = $this->_callStack[$stackPointNum];
+            if ($this->_calls[$stackPointNum]->isOpen())
+                $openCalls[] = $this->_calls[$stackPointNum];
             $stackPointNum--;
         }
 
@@ -84,21 +104,21 @@ class Code {
     }
 
     private function _firstCall () {
-        return is_null($this->_stackPointer);
+        return is_null($this->_currentCallPointer);
     }
 
     /**
      * @return Call
      */
     private function _getCurrentCall () {
-        return $this->_callStack[$this->_stackPointer];
+        return $this->_calls[$this->_currentCallPointer];
     }
 
     private function _stackPointerInc () {
-        if (is_null($this->_stackPointer)) {
-            $this->_stackPointer = 0;
+        if (is_null($this->_currentCallPointer)) {
+            $this->_currentCallPointer = 0;
         } else {
-            $this->_stackPointer++;
+            $this->_currentCallPointer++;
         }
     }
 

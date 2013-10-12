@@ -66,6 +66,9 @@ class Trace {
      */
     private function _preProcessTraceStack (array $traceStack) {
         foreach($traceStack as $index => $trace) {
+            if (!array_key_exists('file', $trace)) {
+                continue;
+            }
             $traceStack[$index]['line_view'] = $this->_getStringFromFile($trace['file'], $trace['line']);
         }
         return $traceStack;

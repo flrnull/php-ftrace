@@ -19,9 +19,19 @@ class Block {
     private $_lastUnit;
 
     /**
+     * @var Unit
+     */
+    private $_lastCallMock;
+
+    /**
      * @var int
      */
     private $_largestLineNumber;
+
+    /**
+     * @var int
+     */
+    private $_depth;
 
     /**
      * @var bool|null
@@ -40,11 +50,11 @@ class Block {
 
     /**
      * @param Unit $unit
+     * @param Block[] $previousBlocks
      */
-    public function __construct (Unit $unit) {
-        $this->_units = array($unit);
-        $this->_setLastUnit($unit);
-        $this->_processLinerNumber($unit);
+    public function __construct (Unit $unit, array $previousBlocks = array()) {
+        $this->setPreviousBlocks($previousBlocks);
+        $this->addUnit($unit);
     }
 
     /**
@@ -52,14 +62,59 @@ class Block {
      */
     public function addUnit (Unit $unit) {
         $prevUnit = $this->getLastUnit();
-        if ($unit->getDepth() > $prevUnit->getDepth()) {
-            $prevUnit->initCall($unit);
-        } else {
-            $this->_units[] = $unit;
-            $this->_processLinerNumber($unit);
+        if (is_null($prevUnit)) {
+            echo "\nBlock: It's first unit of block, simple create block with one unit: " . $unit->getLineView() . " depth: " . $unit->getDepth() . "\n";
+            $this->_depth = $unit->getDepth();
+            $prevBlock = $this->_getPreviousBlock();
+            if (is_null($prevBlock)) {
+                echo "\nBlock: no previous block has been pushed, use new unit\n";
+
+                include_once '/home/quiver/sources/kint/Kint.class.php';
+                \Kint::dump(1);
+
+                $prevUnit = $unit;
+            } else {
+                echo "\nBlock: has previous block, use it's last unit\n";
+                $prevUnit = $prevBlock->getLastUnit();
+
+                if ($prevUnit->getDepth() == 0) {
+                    include_once '/home/quiver/sources/kint/Kint.class.php';
+                    \Kint::dump($prevBlock);
+                }
+            }
         }
-        $this->_setLastUnit($unit);
-        $this->_processIsBraced($unit);
+
+        if ($unit->isCallFirstUnit($prevUnit)) {
+            echo "\nBlock: Unit opens new call (prev [".$prevUnit->getLineView().":".$prevUnit->getDepth()."] new [".$unit->getLineView().":".$unit->getDepth()."]), create mock\n";
+            $mockCallUnit = Unit::getMockForCall();
+            $mockCallUnit->initCall($unit);
+            $this->_addUnitPostProcessing($mockCallUnit);
+            $this->_lastCallMock = $mockCallUnit;
+        } elseif ($unit->isCallClosingUnit($prevUnit)) {
+            echo "\nBlock: Unit closes new call , replace mock for this unit\n";
+            $this->_lastCallMock->mockReplaceWithUnit($unit);
+            $this->_lastCallMock = null;
+        } else {
+            echo "\nBlock: Unit not opens or closes call (prev [".$prevUnit->getLineView().":".$prevUnit->getDepth()."] new [".$unit->getLineView().":".$unit->getDepth()."]), simple processing\n";
+            $this->_addUnitPostProcessing($unit);
+        }
+    }
+
+    /**
+     * @return int
+     */
+    public function getDepth () {
+       return $this->_depth;
+    }
+
+    /**
+     * @param Unit $newUnit
+     */
+    private function _addUnitPostProcessing (Unit $newUnit) {
+        $this->_units[] = $newUnit;
+        $this->_processLinerNumber($newUnit);
+        $this->_setLastUnit($newUnit);
+        $this->_processIsBraced($newUnit);
     }
 
     /**
@@ -88,6 +143,17 @@ class Block {
     }
 
     /**
+     * @return Block
+     */
+    private function _getPreviousBlock () {
+        $count = count($this->_previousBlocks);
+        if ($count === 0) {
+            return null;
+        }
+        return $this->_previousBlocks[--$count];
+    }
+
+    /**
      * @param Unit[] $units
      */
     private function _setUnits (array $units) {
@@ -99,6 +165,10 @@ class Block {
      * @return bool
      */
     public function blockIsOpen (Unit $newUnit) {
+        if ($this->_lastUnitIsCallMock()) {
+            return true;
+        }
+
         if ($this->_currentBlockIsLoop($newUnit)){
             if ($this->_unitIsLoopEntry($newUnit)) {
                 return true;
@@ -119,6 +189,13 @@ class Block {
         }
 
         return false;
+    }
+
+    /**
+     * @return bool
+     */
+    private function _lastUnitIsCallMock () {
+        return $this->getLastUnit()->isMock();
     }
 
     /**
