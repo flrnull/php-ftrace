@@ -10,7 +10,7 @@ use FTrace\Utils\Code\Unit;
 use FTrace\Utils\Code\Call;
 use FTrace\Utils\Code\Block;
 use FTrace\Utils\Trace;
-
+use \Kint;
 class Code {
 
     /**
@@ -37,12 +37,17 @@ class Code {
      */
     public function pushCode (Trace $obTrace) {
         $unit = new Unit($obTrace);
-
+        echo "\n\nCode: start unit " . $unit->getLineView() . "\n\n";
         if ($this->_firstBlock() || $this->_noOpenBlocks($unit)) {
+            echo "\nCode: isFirstBlock: " . intval($this->_firstBlock()) . ", noOpenBlocks: " . intval($this->_noOpenBlocks($unit)) . " for unit " . $unit->getLineView() . "\n";
             $this->_initBlock($unit);
         } else {
+            echo "\nCode: push to current block unit " . $unit->getLineView() . "\n";
             $this->_pushToCurrentBlock($unit);
         }
+        include_once '/home/quiver/sources/kint/Kint.class.php';
+
+        +Kint::dump($this->_blocks);
     }
 
     /**
@@ -56,7 +61,9 @@ class Code {
      * @param Unit $unit
      */
     private function _pushToCurrentBlock (Unit $unit) {
+        echo "\nCode: current block with index " . $this->_currentBlockPointer . " and depth " . $this->_getCurrentBlock()->getDepth() . " has " . count($this->_getCurrentBlock()->getUnits()) . " units, last unit: " . $this->_getCurrentBlock()->getLastUnit()->getLineView() . " \n";
         $this->_getCurrentBlock()->addUnit($unit);
+        echo "\nCode: current block with index " . $this->_currentBlockPointer . " and depth " . $this->_getCurrentBlock()->getDepth() . " has " . count($this->_getCurrentBlock()->getUnits()) . " units, last unit: " . $this->_getCurrentBlock()->getLastUnit()->getLineView() . " \n";
     }
 
     /**

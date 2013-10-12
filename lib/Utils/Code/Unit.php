@@ -120,10 +120,22 @@ class Unit {
     }
 
     /**
+     * @param int $depth
      * @return Unit
      */
-    public static function getMockForCall () {
-        return new self(new Trace(array(array('object' => 'Mock'))));
+    public static function getMockForCall ($depth) {
+        $traceMock = array();
+        for($i = 1; $i <= $depth; $i++) {
+            $traceMock[] = array('object' => 'Mock');
+        }
+        return new self(new Trace($traceMock));
+    }
+
+    /**
+     * @return Call
+     */
+    public function getCall () {
+        return $this->_call;
     }
 
     /**

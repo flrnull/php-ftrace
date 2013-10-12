@@ -72,13 +72,20 @@ class Block {
         if (is_null($prevUnit)) {
             echo "\nBlock: It's first unit of block, simple create block with one unit: " . $unit->getLineView() . " depth: " . $unit->getDepth() . "\n";
             $this->_depth = $unit->getDepth();
+        } else {
+            echo "\nBlock: It's not first unit, prevUnit: [" . $prevUnit->getLineView() . "]\n";
+            if ($prevUnit->isMock()) {
+                $prevUnit->getCall()->addUnit($unit);
+                return;
+            }
         }
 
         $prevDepth = is_null($prevUnit) ? $this->_prevCallDepth : $prevUnit->getDepth();
+        echo "\nBlock: prevDepth = {$prevDepth} // " . (is_null($prevUnit) ? '$this->_prevCallDepth' : '$prevUnit->getDepth()') . "\n";
 
         if ($unit->isCallFirstUnit($prevDepth)) {
             echo "\nBlock: Unit opens new call (prev [".$prevDepth."] new [".$unit->getLineView().":".$unit->getDepth()."]), create mock\n";
-            $mockCallUnit = Unit::getMockForCall();
+            $mockCallUnit = Unit::getMockForCall($unit->getDepth());
             $mockCallUnit->initCall($unit, $unit->getDepth());
             $this->_addUnitPostProcessing($mockCallUnit);
             $this->_lastCallMock = $mockCallUnit;
