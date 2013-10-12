@@ -71,7 +71,7 @@ class Code {
             return; // don't trace higher code levels
         }
 
-        $block = new Block($unit, array(), $unit->getDepth());
+        $block = new Block($unit, array(), $this->_depth);
         $this->_addBlock($block);
     }
 
