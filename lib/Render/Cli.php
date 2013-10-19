@@ -13,10 +13,20 @@ class Cli {
     public function render (Unit $unit) {
         $tabCount = $unit->getDepth();
         $codeLine = $unit->getLineView();
+
+        if (trim($codeLine) == '}')
+            return;
+
         $tabs = str_repeat('    ', $tabCount);
 
-        echo "\n";
-        echo "{$tabs}> {$codeLine}\n";
+        if ($unit->isCall()) {
+            $args = " # (" . implode(", ", $unit->getArgs()) . ")";
+        } else {
+            $args = "";
+        }
+
+        echo "\n{$tabs}> {$codeLine}{$args}";
+
         if ($unit->isCall()) {
             $call = $unit->getCall();
             foreach($call->getUnits() as $innerUnit) {
@@ -25,7 +35,7 @@ class Cli {
         }
 
         if ($tabCount == 1) {
-            echo "\n\n";
+            echo "\n";
         }
     }
 

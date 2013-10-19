@@ -55,6 +55,7 @@ class Trace {
             $localParam = "_{$param}";
             $this->$localParam = $value;
         }
+        $this->_args = isset($processedTrace[1]) ? @$processedTrace[1]['args'] : array();
         $this->_traceSource = $traceStack;
     }
 
@@ -80,8 +81,7 @@ class Trace {
      * @return string
      */
     private function _getStringFromFile ($fileName, $lineNumber) {
-        $string = File::getStringFromFile($fileName, $lineNumber);
-        return $string;
+        return File::getStringFromFile($fileName, $lineNumber);
     }
 
 

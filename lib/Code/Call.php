@@ -94,6 +94,13 @@ class Call {
     }
 
     /**
+     * @return Unit
+     */
+    public function getFirstUnit () {
+        return $this->_units[0];
+    }
+
+    /**
      * @param Unit[] $units
      */
     private function _extractDepthFromUnits (array $units) {

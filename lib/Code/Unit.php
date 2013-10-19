@@ -12,11 +12,40 @@ use FTrace\Utils\File;
 
 class Unit {
 
+    /**
+     * @var int
+     */
     private $_lineNumber;
+
+    /**
+     * @var string
+     */
     private $_lineView;
+
+    /**
+     * @var int
+     */
     private $_depth;
+
+    /**
+     * @var array
+     */
+    private $_args;
+
+    /**
+     * @var Call
+     */
     private $_call;
+
+    /**
+     * @var float
+     */
     private $_createMicroTime;
+
+
+    /**
+     * @var Trace
+     */
     private $_obTrace;
 
     /**
@@ -33,6 +62,7 @@ class Unit {
         $this->_lineNumber = (int)$obTrace->getLine();
         $this->_lineView = trim($obTrace->getLineView());
         $this->_depth = count($obTrace->getTraceSource());
+        $this->_args = $obTrace->getArgs();
         $this->_createMicroTime = Time::getFloatTime();
         $this->_obTrace = $obTrace;
     }
@@ -59,10 +89,17 @@ class Unit {
     }
 
     /**
-     * @return mixed
+     * @return Trace
      */
     public function getTrace () {
         return $this->_obTrace;
+    }
+
+    /**
+     * @return array
+     */
+    public function getArgs () {
+        return $this->_args;
     }
 
     /**
@@ -110,6 +147,7 @@ class Unit {
      */
     public function mockReplaceWithUnit (Unit $unit) {
         $this->_fillVarsFromTrace($unit->getTrace());
+        $this->_args = $this->_call->getFirstUnit()->getArgs();
     }
 
 }
