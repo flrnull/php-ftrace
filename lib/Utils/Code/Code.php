@@ -8,141 +8,55 @@ namespace FTrace\Utils\Code;
 
 use FTrace\Utils\Code\Unit;
 use FTrace\Utils\Code\Call;
-use FTrace\Utils\Code\Block;
 use FTrace\Utils\Trace;
-use \Kint;
+
 class Code {
 
     /**
-     * @var int
+     * @var Call
      */
-    private $_currentBlockPointer;
-
-    /**
-     * @var int
-     */
-    private $_depth;
-
-    /**
-     * @var Block[]
-     */
-    private $_blocks;
+    private $_call;
 
     public function __construct () {
-        $this->_blocks = array();
+        $this->_call = new Call(true);
     }
 
     /**
      * @param Trace $obTrace
      */
     public function pushCode (Trace $obTrace) {
+        // Code has root call
+        // Each unit could have call
+        // Each call has array of units
+        /*
+         Code:
+            0. Init root call in constructor
+            1. Create unit
+            2. Push unit to call
+         Call:
+            1. If we have no units, simply add it as first and calc call depth
+            2. If we already have units
+                2.1 If unit has deeper depth
+                    2.1.1 If last unit is mock, push this new unit to last call
+                    2.1.2 If we have no open call, we create unit mock with call, and put unit as first unit of this call
+                2.2 If unit has the same depth
+                    2.2.1 If last unit is mock, insert data from new unit into mock, remove new unit (unit closing call)
+                    2.2.2 If last unit not mock, simply add new unit to array
+                2.2 If unit has smaller depth, we remove it and skip step (we are out of scope)
+        */
+
         $unit = new Unit($obTrace);
-        echo "\n\nCode: start unit " . $unit->getLineView() . "\n\n";
-        if ($this->_firstBlock() || $this->_noOpenBlocks($unit)) {
-            echo "\nCode: isFirstBlock: " . intval($this->_firstBlock()) . ", noOpenBlocks: " . intval($this->_noOpenBlocks($unit)) . " for unit " . $unit->getLineView() . "\n";
-            $this->_initBlock($unit);
-        } else {
-            echo "\nCode: push to current block unit " . $unit->getLineView() . "\n";
-            $this->_pushToCurrentBlock($unit);
-        }
-        include_once '/home/quiver/sources/kint/Kint.class.php';
+        echo "\n\n -> Code: create unit <strong>" . $unit->getLineView() . "</strong>\n\n";
 
-        +Kint::dump($this->_blocks);
+        echo "\n\n -> Code: add unit to root call\n\n";
+        $this->_call->addUnit($unit);
     }
 
     /**
-     * @return Block[]
+     * @return Call
      */
-    public function getBlocks () {
-        return $this->_blocks;
-    }
-
-    /**
-     * @param Unit $unit
-     */
-    private function _pushToCurrentBlock (Unit $unit) {
-        echo "\nCode: current block with index " . $this->_currentBlockPointer . " and depth " . $this->_getCurrentBlock()->getDepth() . " has " . count($this->_getCurrentBlock()->getUnits()) . " units, last unit: " . $this->_getCurrentBlock()->getLastUnit()->getLineView() . " \n";
-        $this->_getCurrentBlock()->addUnit($unit);
-        echo "\nCode: current block with index " . $this->_currentBlockPointer . " and depth " . $this->_getCurrentBlock()->getDepth() . " has " . count($this->_getCurrentBlock()->getUnits()) . " units, last unit: " . $this->_getCurrentBlock()->getLastUnit()->getLineView() . " \n";
-    }
-
-    /**
-     * @param Unit $unit
-     */
-    private function _initBlock (Unit $unit) {
-        if ($this->_firstBlock()) {
-            $this->_depth = $unit->getDepth();
-        }
-
-        if ($this->_depth > $unit->getDepth()) {
-            return; // don't trace higher code levels
-        }
-
-        $block = new Block($unit, array(), $this->_depth);
-        $this->_addBlock($block);
-    }
-
-    /**
-     * @param Block $block
-     */
-    private function _addBlock (Block $block) {
-        $this->_blocks[] = $block;
-        $this->_stackPointerInc();
-    }
-
-    /**
-     * @param Unit $unit
-     * @return bool
-     */
-    private function _noOpenBlocks (Unit $unit) {
-        $openBlocks = $this->_getOpenBlocks($unit);
-        if (count($openBlocks) === 0) {
-            return true;
-        }
-        return false;
-    }
-
-    /**
-     * @param Unit $Unit
-     * @return Block[]
-     */
-    private function _getOpenBlocks (Unit $Unit) {
-        $openBlocks = array();
-
-        $stackPointNum = $this->_currentBlockPointer;
-        if (is_null($stackPointNum))
-            return $openBlocks;
-
-        while($stackPointNum >= 0) {
-            if ($this->_blocks[$stackPointNum]->isOpen($Unit)) {
-                $openBlocks[] = $this->_blocks[$stackPointNum];
-            }
-            $stackPointNum--;
-        }
-
-        return $openBlocks;
-    }
-
-    /**
-     * @return bool
-     */
-    private function _firstBlock () {
-        return is_null($this->_currentBlockPointer);
-    }
-
-    /**
-     * @return Block
-     */
-    private function _getCurrentBlock () {
-        return $this->_blocks[$this->_currentBlockPointer];
-    }
-
-    private function _stackPointerInc () {
-        if (is_null($this->_currentBlockPointer)) {
-            $this->_currentBlockPointer = 0;
-        } else {
-            $this->_currentBlockPointer++;
-        }
+    public function getData () {
+        return $this->_call;
     }
 
 }

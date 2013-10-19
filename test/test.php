@@ -80,4 +80,4 @@ foreach($result['code'] as $block) {
 
 include_once '/home/quiver/sources/kint/Kint.class.php';
 Kint::dump($result['debug']);
-Kint::dump($result['code']);
++Kint::dump($result['code']);

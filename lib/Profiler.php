@@ -10,7 +10,6 @@ include_once __DIR__ . '/Utils/Time.php';
 include_once __DIR__ . '/Utils/Trace.php';
 include_once __DIR__ . '/Utils/File.php';
 include_once __DIR__ . '/Utils/Code/Code.php';
-include_once __DIR__ . '/Utils/Code/Block.php';
 include_once __DIR__ . '/Utils/Code/Unit.php';
 include_once __DIR__ . '/Utils/Code/Call.php';
 
@@ -71,7 +70,7 @@ class Profiler {
     public function stopProfiling () {
         $this->_result['time_passed'] = Time::stop('__profiler_global');
         $this->_result['code_time'] = (float)$this->_result['time_passed'] - (float)$this->_result['profiler_time'];
-        $this->_result['code'] = $this->_code->getBlocks();
+        $this->_result['code'] = $this->_code->getData();
     }
 
     public function tickHandler () {

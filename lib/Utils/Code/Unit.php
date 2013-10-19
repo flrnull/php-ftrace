@@ -33,7 +33,6 @@ class Unit {
         $this->_lineNumber = (int)$obTrace->getLine();
         $this->_lineView = trim($obTrace->getLineView());
         $this->_depth = count($obTrace->getTraceSource());
-        $this->_call = null;
         $this->_createMicroTime = Time::getFloatTime();
         $this->_obTrace = $obTrace;
     }
@@ -43,15 +42,6 @@ class Unit {
      */
     public function getDepth () {
         return $this->_depth;
-    }
-
-    /**
-     * @param int $lineNumber
-     */
-    public function processNewLine ($lineNumber) {
-        $file = $this->_obTrace->getFile();
-        $this->_lineNumber = $lineNumber;
-        $this->_lineView = File::getStringFromFile($file, $lineNumber);
     }
 
     /**
@@ -76,50 +66,6 @@ class Unit {
     }
 
     /**
-     * @param Unit $unit
-     * @param int $prevDepth
-     */
-    public function initCall (Unit $unit, $prevDepth = null) {
-        $this->_call = Call::create($unit, $prevDepth);
-    }
-
-    /**
-     * @return bool
-     */
-    public function isClosingBrace () {
-        $braceInLine = $this->_stackReturnExtraBrace($this->_lineView, '{', '}');
-        return $braceInLine === '}';
-    }
-
-    /**
-     * @return bool
-     */
-    public function isOpeningBrace () {
-        $braceInLine = $this->_stackReturnExtraBrace($this->_lineView, '{', '}');
-        return $braceInLine === '{';
-    }
-
-    /**
-     * @param int $prevDepth
-     * @return bool
-     */
-    public function isCallFirstUnit ($prevDepth) {
-        return ($this->getDepth() > $prevDepth);
-    }
-
-    /**
-     * @param int $prevDepth
-     * @return bool
-     */
-    public function isCallClosingUnit ($prevDepth) {
-        return ($this->getDepth() < $prevDepth);
-    }
-
-    public function mockReplaceWithUnit (Unit $unit) {
-        $this->_fillVarsFromTrace($unit->getTrace());
-    }
-
-    /**
      * @param int $depth
      * @return Unit
      */
@@ -141,35 +87,29 @@ class Unit {
     /**
      * @return bool
      */
+    public function isCall () {
+        return ($this->_call === null);
+    }
+
+    /**
+     * @return bool
+     */
     public function isMock () {
         return (is_null($this->_obTrace->getLine()) && is_null($this->_obTrace->getLineView()));
     }
 
     /**
-     * @param string $string
-     * @param string $braceOpen
-     * @param string $braceClose
-     * @return string
+     * @param Unit $unit
      */
-    private function _stackReturnExtraBrace ($string, $braceOpen, $braceClose) {
-        $stack = array();
-        $stringChars = str_split($string);
-        foreach($stringChars as $char) {
-            if ($char === $braceOpen) {
-                array_push($stack, $char);
-            } elseif ($char === $braceClose) {
-                if (count($stack) === 0) {
-                    return $braceClose;
-                } else {
-                    array_pop($stack);
-                }
-            }
-        }
-        if (count($stack) === 0) {
-            return null;
-        } else {
-            return array_pop($stack);
-        }
+    public function initCall (Unit $unit) {
+        $this->_call = new Call(false, array($unit));
+    }
+
+    /**
+     * @param Unit $unit
+     */
+    public function mockReplaceWithUnit (Unit $unit) {
+        $this->_fillVarsFromTrace($unit->getTrace());
     }
 
 }

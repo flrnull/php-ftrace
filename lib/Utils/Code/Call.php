@@ -9,126 +9,112 @@ namespace FTrace\Utils\Code;
 class Call {
 
     /**
-     * @var Unit[]
-     */
-    private $_blocksList;
-
-    /**
      * @var bool
      */
-    private $_isOpen;
+    private $_isRoot;
 
     /**
-     * @var Unit
+     * @var int
      */
-    private $_previousUnit;
-
-    public function __construct (Block $block) {
-        $this->_blocksList = array($block);
-        $this->_isOpen = true;
-    }
+    private $_depth;
 
     /**
-     * @return array
+     * @var Unit[]
      */
-    public function getBlocks () {
-        return $this->_blocksList;
-    }
+    private $_units;
 
     /**
-     * @return Block
+     * @param bool $isRoot
+     * @param array $units
      */
-    public function getLastBlock () {
-        $blockCount = count($this->_blocksList);
-        return $this->_blocksList[--$blockCount];
-    }
-
-    /**
-     * @return Block
-     */
-    public function getFirstBlock () {
-        return $this->_blocksList[0];
-    }
-
-    /**
-     * @param Block $block
-     */
-    public function addBlock (Block $block) {
-        $this->_blocksList[] = $block;
+    public function __construct ($isRoot = false, array $units = array()) {
+        $this->_isRoot = $isRoot;
+        $this->_units = $units;
+        $this->_extractDepthFromUnits($units);
     }
 
     /**
      * @param Unit $unit
      */
     public function addUnit (Unit $unit) {
-        echo "\nCall: Start processing " . $unit->getLineView() . " with depth " . $unit->getDepth() . "\n";
-        $lastBlock = $this->getLastBlock();
-        echo "\nCall: Last block has " . count($lastBlock->getUnits()) . " units\n";
-        if ($lastBlock->isOpen($unit)) {
-            echo "\nCall: Last block is open ->addUnit() \n";
-            $lastBlock->addUnit($unit);
-        } else {
-            echo "\nCall: Last block is closed new Block(unit); this->addBlock \n";
-            $block = new Block($unit, $this->getBlocks());
-            $this->addBlock($block);
-            $this->_tryToCloseCurrentCall($unit);
+        if ($this->isEmpty()) {
+            echo "\n\nCall: call is empty, add unit to units : " . $unit->getLineView() . "\n\n";
+            $this->_units[] = $unit;
+            $this->_depth = $unit->getDepth();
+            return;
         }
-        $this->_previousUnit = $unit;
+
+        $newUnitDepth = $unit->getDepth();
+        $lastUnit = $this->getLastUnit();
+
+        if ($newUnitDepth > $this->_depth) {
+
+            echo "\nCall: unit is deeper ({$newUnitDepth} > ".$this->_depth."), check last unit\n";
+            if ($lastUnit->isMock()) {
+                echo "\nCall: last unit is mock, add new unit to it's call\n";
+                $lastUnit->getCall()->addUnit($unit);
+            } else {
+                echo "\nCall: last unit is not mock, create mock\n";
+                $mockUnit = Unit::getMockForCall($this->_depth);
+
+                echo "\nCall: create new call in mock\n";
+                $mockUnit->initCall($unit);
+
+                echo "\nCall: add mock to units\n";
+                $this->_units[] = $mockUnit;
+            }
+
+        } elseif ($newUnitDepth === $this->_depth) {
+
+            echo "\nCall: unit depth ({$newUnitDepth}) is the same depth as call (" . $this->_depth . ")\n";
+            if ($lastUnit->isMock()) {
+                echo "\nCall: last unit is mock, replace it\n";
+                $lastUnit->mockReplaceWithUnit($unit);
+            } else {
+                echo "\nCall: last unit is not mock, add to units\n";
+                $this->_units[] = $unit;
+            }
+        } else {
+            echo "\nCall: unit is out of scope, skip\n";
+            return;
+        }
     }
 
     /**
      * @return bool
      */
-    public function isOpen () {
-        return $this->_isOpen;
-    }
-
-    public function close () {
-        $this->_closeCurrentCall();
+    public function isRoot () {
+        return $this->_isRoot;
     }
 
     /**
-     * @param Unit $unit
-     * @param int $prevDepth
-     * @return Call
+     * @return bool
      */
-    public static function create (Unit $unit, $prevDepth = null) {
-        echo "\nCall: create new call for " . $unit->getLineView() . ', prevDepth: ' . $prevDepth . "\n";
-        $block = new Block($unit, array(), $prevDepth);
-        return new Call($block);
-    }
-
-    private function _closeCurrentCall () {
-        $this->_moveLastBlockToBegin();
-        $this->_isOpen = false;
+    public function isEmpty () {
+        return (count($this->_units) === 0);
     }
 
     /**
-     * @param Unit $lastAddedUnit
+     * @return Unit[]
      */
-    private function _tryToCloseCurrentCall (Unit $lastAddedUnit) {
-        if (is_null($this->_previousUnit))
-            return;
-
-        $prevUnit = $this->_previousUnit;
-
-        if ($prevUnit->getDepth() > $lastAddedUnit->getDepth()) {
-            $this->_closeCurrentCall();
-        }
-    }
-
-    private function _moveLastBlockToBegin () {
-        $blocks = $this->getBlocks();
-        $callBlock = array_pop($blocks);
-        array_unshift($blocks, $callBlock);
-        $this->_setBlocks($blocks);
+    public function getUnits () {
+        return $this->_units;
     }
 
     /**
-     * @param Block[] $blocks
+     * @return Unit
      */
-    private function _setBlocks (array $blocks) {
-        $this->_blocksList = $blocks;
+    public function getLastUnit () {
+        $unitCount = count($this->_units);
+        return $this->_units[--$unitCount];
+    }
+
+    /**
+     * @param Unit[] $units
+     */
+    private function _extractDepthFromUnits (array $units) {
+        if (count($units) > 0)
+            $this->_depth = $units[0]->getDepth();
     }
 
 }
