@@ -49,7 +49,7 @@ class test {
 }
 
 
-ftrace(3);
+ftrace();
 
 $test = new test();
 $test->func1();

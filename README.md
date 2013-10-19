@@ -9,6 +9,7 @@ Usage
 ```php
 <?php
 declare(ticks = 1); // should be in the beginning of file
+require_once '/path/to/php-ftrace/lib/ftrace.php';
 ftrace();
 
 $test = new test();
