@@ -13,6 +13,7 @@ include_once __DIR__ . '/Code/Code.php';
 include_once __DIR__ . '/Code/Unit.php';
 include_once __DIR__ . '/Code/Call.php';
 include_once __DIR__ . '/Render/Simple.php';
+include_once __DIR__ . '/Render/Cli.php';
 
 use FTrace\Utils\Time;
 use FTrace\Utils\Trace;

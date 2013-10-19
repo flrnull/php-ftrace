@@ -22,7 +22,6 @@ class test {
     }
 
     public function func1 () {
-        echo "\nfunc1 starts";
         if (true) {
             $this->_some1 = 'First line of two line if';
             $this->_some1 = 'Braced block body';
@@ -31,31 +30,24 @@ class test {
         $this->_some1 = 4;
 
         $this->func2();
-        echo "\n//func1\n\n";
     }
 
     public function func2 () {
-        echo "\nfunc2 starts";
         for($i = 0; $i < 2; $i++)
             $this->_some2 = $i;
 
         $c = 1;
         $d = 2;
         $this->func3($c, $d);
-        echo "\n//func2";
     }
 
     public function func3 ($a, $b) {
-        echo "\nfunc3 starts";
         for($i = 0; $i < 2; $i++) {
             $this->some3 = 'Two lines braced loop';
             $this->_some3 = $i;
         }
-        echo "\n//func3";
     }
 }
-
-echo "<pre>";
 
 Profiler::start();
 
@@ -64,8 +56,12 @@ $test->func1();
 
 $result = Profiler::stop();
 
-
-$render = new \FTrace\Render\Simple();
+if (php_sapi_name() == 'cli') {
+    $render = new \FTrace\Render\Cli();
+} else {
+    echo "<pre>";
+    $render = new \FTrace\Render\Simple();
+}
 /* @var $unit FTrace\Code\Unit */
 foreach($result['code']->getUnits() as $unit) {
     $render->render($unit);
