@@ -8,17 +8,32 @@ Usage
 
 ```php
 <?php
-declare(ticks = 1);
-use FTrace\Profiler;
+declare(ticks = 1); // should be in the beginning of file
+ftrace();
 
-Profiler::start();
-// Some code
-$result = Profiler::stop();
+$test = new test();
+$test->func1();
 
-var_export($result);
+ftrace_print();
 ```
 
-Roadmap
-_______
-* Realtime trace
-* Deep limit
+Docs
+----
+
+* Depth limit
+
+```php
+ftrace(2); // will not trace deeper than 2 levels
+```
+
+* Return trace result
+
+```php
+ftrace();
+// ...
+$traceData = ftrace_stop();
+```
+
+License
+-------
+MIT

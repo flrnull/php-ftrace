@@ -4,11 +4,10 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-ini_set('display_errors', 1);
-
 declare(ticks = 1);
-include_once __DIR__ . '/../lib/Profiler.php';
-use FTrace\Profiler;
+include_once __DIR__ . '/../lib/ftrace.php';
+
+ini_set('display_errors', 1);
 
 class test {
 
@@ -49,20 +48,10 @@ class test {
     }
 }
 
-Profiler::start();
+
+ftrace(3);
 
 $test = new test();
 $test->func1();
 
-$result = Profiler::stop();
-
-if (php_sapi_name() == 'cli') {
-    $render = new \FTrace\Render\Cli();
-} else {
-    echo "<pre>";
-    $render = new \FTrace\Render\Simple();
-}
-/* @var $unit FTrace\Code\Unit */
-foreach($result['code']->getUnits() as $unit) {
-    $render->render($unit);
-}
+ftrace_print();

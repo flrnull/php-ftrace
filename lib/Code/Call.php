@@ -98,7 +98,7 @@ class Call {
      */
     private function _extractDepthFromUnits (array $units) {
         if (count($units) > 0)
-            $this->_depth = $units[0]->getDepth();
+            $this->_depth = ($this->_isRoot) ? $units[0]->getDepth()-1 : $units[0]->getDepth();
     }
 
 }

@@ -22,9 +22,19 @@ use FTrace\Code\Code;
 class Profiler {
 
     /**
+     * Skip ticks in this file
+     */
+    const TRACE_FUNC_FILE = 'lib/ftrace.php';
+
+    /**
      * @var Profiler
      */
     private static $_instance;
+
+    /**
+     * @var int
+     */
+    private $_depthLimit;
 
     /**
      * @var array
@@ -47,40 +57,22 @@ class Profiler {
 
     /**
      * Starts profiler
+     *
+     * @param int $depthLimit
      */
-    public static function start () {
-        self::instance()->startProfiling();
-        register_tick_function(array(&self::$_instance, 'tickHandler'));
+    public static function start ($depthLimit = null) {
+        self::instance()->startProfiling($depthLimit);
     }
 
     /**
-     * Stops profiler
-     *
-     * @return array
+     * Code trace
      */
-    public static function stop () {
-        unregister_tick_function(array(&self::$_instance, 'tickHandler'));
-        self::$_instance->stopProfiling();
-        return self::$_instance->_result;
-    }
-
-    public function startProfiling () {
-        $this->_initResultStructure();
-        Time::start('__profiler_global');
-    }
-
-    public function stopProfiling () {
-        $this->_result['time_passed'] = Time::stop('__profiler_global');
-        $this->_result['code_time'] = (float)$this->_result['time_passed'] - (float)$this->_result['profiler_time'];
-        $this->_result['code'] = $this->_code->getData();
-    }
-
     public function tickHandler () {
         $this->_tickSetStartTime();
         $this->_result['counter']++;
         $obTrace = new Trace(debug_backtrace());
 
-        if ($this->_tickIsInternal($obTrace)) {
+        if ($this->_tickIsInternal($obTrace) || $this->_invalidDepth($obTrace)) {
             $this->_tickSetFinishTime();
             return;
         }
@@ -91,6 +83,33 @@ class Profiler {
         $this->_result['debug'][] = $str;
 
         $this->_tickSetFinishTime();
+    }
+
+    /**
+     * Stops profiler
+     *
+     * @return array
+     */
+    public static function stop () {
+        self::$_instance->stopProfiling();
+        return self::$_instance->_result;
+    }
+
+    /**
+     * @param int $depthLimit
+     */
+    public function startProfiling ($depthLimit = null) {
+        $this->_depthLimit = $depthLimit;
+        $this->_initResultStructure();
+        Time::start('__profiler_global');
+        register_tick_function(array($this, 'tickHandler'));
+    }
+
+    public function stopProfiling () {
+        unregister_tick_function(array($this, 'tickHandler'));
+        $this->_result['time_passed'] = Time::stop('__profiler_global');
+        $this->_result['code_time'] = (float)$this->_result['time_passed'] - (float)$this->_result['profiler_time'];
+        $this->_result['code'] = $this->_code->getData();
     }
 
     private function _tickSetStartTime () {
@@ -109,7 +128,24 @@ class Profiler {
      * @return bool
      */
     private function _tickIsInternal (Trace $trace) {
-        return (is_null($trace->getFile()) || $trace->getFile() === __FILE__);
+        return (is_null($trace->getFile()) || $trace->getFile() === __FILE__ || strpos($trace->getFile(), self::TRACE_FUNC_FILE) !== false);
+    }
+
+    /**
+     * @param Trace $trace
+     * @return bool
+     */
+    private function _invalidDepth (Trace $trace) {
+        if (is_null($this->_depthLimit)) {
+            return false;
+        }
+
+        $traceDepth = count($trace->getTraceSource());
+        if ($this->_depthLimit >= $traceDepth) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
