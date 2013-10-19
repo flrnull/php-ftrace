@@ -4,7 +4,7 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace FTrace\Utils\Code;
+namespace FTrace\Code;
 
 use FTrace\Utils\Trace;
 use FTrace\Utils\Time;
@@ -88,7 +88,7 @@ class Unit {
      * @return bool
      */
     public function isCall () {
-        return ($this->_call === null);
+        return ($this->_call !== null);
     }
 
     /**

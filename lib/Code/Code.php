@@ -4,10 +4,10 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace FTrace\Utils\Code;
+namespace FTrace\Code;
 
-use FTrace\Utils\Code\Unit;
-use FTrace\Utils\Code\Call;
+use FTrace\Code\Unit;
+use FTrace\Code\Call;
 use FTrace\Utils\Trace;
 
 class Code {
@@ -46,9 +46,6 @@ class Code {
         */
 
         $unit = new Unit($obTrace);
-        echo "\n\n -> Code: create unit <strong>" . $unit->getLineView() . "</strong>\n\n";
-
-        echo "\n\n -> Code: add unit to root call\n\n";
         $this->_call->addUnit($unit);
     }
 

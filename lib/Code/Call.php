@@ -4,7 +4,7 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-namespace FTrace\Utils\Code;
+namespace FTrace\Code;
 
 class Call {
 
@@ -38,7 +38,6 @@ class Call {
      */
     public function addUnit (Unit $unit) {
         if ($this->isEmpty()) {
-            echo "\n\nCall: call is empty, add unit to units : " . $unit->getLineView() . "\n\n";
             $this->_units[] = $unit;
             $this->_depth = $unit->getDepth();
             return;
@@ -48,35 +47,20 @@ class Call {
         $lastUnit = $this->getLastUnit();
 
         if ($newUnitDepth > $this->_depth) {
-
-            echo "\nCall: unit is deeper ({$newUnitDepth} > ".$this->_depth."), check last unit\n";
             if ($lastUnit->isMock()) {
-                echo "\nCall: last unit is mock, add new unit to it's call\n";
                 $lastUnit->getCall()->addUnit($unit);
             } else {
-                echo "\nCall: last unit is not mock, create mock\n";
                 $mockUnit = Unit::getMockForCall($this->_depth);
-
-                echo "\nCall: create new call in mock\n";
                 $mockUnit->initCall($unit);
-
-                echo "\nCall: add mock to units\n";
                 $this->_units[] = $mockUnit;
             }
 
         } elseif ($newUnitDepth === $this->_depth) {
-
-            echo "\nCall: unit depth ({$newUnitDepth}) is the same depth as call (" . $this->_depth . ")\n";
             if ($lastUnit->isMock()) {
-                echo "\nCall: last unit is mock, replace it\n";
                 $lastUnit->mockReplaceWithUnit($unit);
             } else {
-                echo "\nCall: last unit is not mock, add to units\n";
                 $this->_units[] = $unit;
             }
-        } else {
-            echo "\nCall: unit is out of scope, skip\n";
-            return;
         }
     }
 

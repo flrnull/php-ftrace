@@ -31,7 +31,7 @@ class test {
         $this->_some1 = 4;
 
         $this->func2();
-        echo "\n//func1";
+        echo "\n//func1\n\n";
     }
 
     public function func2 () {
@@ -65,19 +65,8 @@ $test->func1();
 $result = Profiler::stop();
 
 
-function render($string, $tabCount) {
-    echo str_repeat('— — ', $tabCount) . '> ' . $string . "\n";
+$render = new \FTrace\Render\Simple();
+/* @var $unit FTrace\Code\Unit */
+foreach($result['code']->getUnits() as $unit) {
+    $render->render($unit);
 }
-
-/* @var $call FTrace\Utils\Code\Call */
-foreach($result['code'] as $block) {
-    echo "- code start -\n";
-    $units = $block->getUnits();
-    foreach($units as $unit) {
-        render($unit->getLineView(), 2);
-    }
-}
-
-include_once '/home/quiver/sources/kint/Kint.class.php';
-Kint::dump($result['debug']);
-+Kint::dump($result['code']);

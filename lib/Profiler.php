@@ -9,13 +9,14 @@ namespace FTrace;
 include_once __DIR__ . '/Utils/Time.php';
 include_once __DIR__ . '/Utils/Trace.php';
 include_once __DIR__ . '/Utils/File.php';
-include_once __DIR__ . '/Utils/Code/Code.php';
-include_once __DIR__ . '/Utils/Code/Unit.php';
-include_once __DIR__ . '/Utils/Code/Call.php';
+include_once __DIR__ . '/Code/Code.php';
+include_once __DIR__ . '/Code/Unit.php';
+include_once __DIR__ . '/Code/Call.php';
+include_once __DIR__ . '/Render/Simple.php';
 
 use FTrace\Utils\Time;
 use FTrace\Utils\Trace;
-use FTrace\Utils\Code\Code;
+use FTrace\Code\Code;
 
 class Profiler {
 
