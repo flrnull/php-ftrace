@@ -4,7 +4,7 @@
  * @author Evgeniy Udodov <flr.null@gmail.com>
  */
 
-include_once __DIR__ . '/../lib/Profiler.php';
+include_once __DIR__ . '/Profiler.php';
 
 use FTrace\Profiler;
 

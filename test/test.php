@@ -55,6 +55,3 @@ $test = new test();
 $test->func1();
 
 ftrace_print();
-/*$data = ftrace_stop();
-include_once '/home/quiver/sources/kint/Kint.class.php';
-+Kint::dump($data);*/
