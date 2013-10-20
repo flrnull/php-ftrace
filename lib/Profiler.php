@@ -69,13 +69,13 @@ class Profiler {
      */
     public function tickHandler () {
         $this->_tickSetStartTime();
-        $this->_result['counter']++;
         $obTrace = new Trace(debug_backtrace());
 
         if ($this->_tickIsInternal($obTrace) || $this->_invalidDepth($obTrace)) {
             $this->_tickSetFinishTime();
             return;
         }
+        $this->_result['counter']++;
 
         $this->_code->pushCode($obTrace);
 

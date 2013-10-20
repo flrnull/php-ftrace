@@ -1,0 +1,5 @@
+<div class="hover" style="cursor: pointer; padding: 2px; border: 1px solid #EEE; margin: 2px; margin-left: <?php echo $unit->getDepth()*30; ?>px;">
+  <pre class="brush: php; toolbar: false; first-line: <?php echo $unit->getLineNumber(); ?>;">
+    <?php echo $unit->getLineView(); ?>&nbsp;<?php if($unit->isCall()): ?>#&nbsp;(<?php echo implode(", ", $unit->getArgs()); ?>)<?php endif; ?>
+  </pre>
+</div>

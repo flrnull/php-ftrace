@@ -5,8 +5,10 @@
  */
 
 include_once __DIR__ . '/Profiler.php';
+include_once __DIR__ . '/Viewer/HTML.php';
 
 use FTrace\Profiler;
+use FTrace\Viewer\HTML;
 
 function ftrace ($depthLimit = null) {
     clearOpcodeCache();
@@ -14,6 +16,7 @@ function ftrace ($depthLimit = null) {
 }
 
 function ftrace_stop () {
+    clearOpcodeCache();
     return Profiler::stop();
 }
 
@@ -21,14 +24,12 @@ function ftrace_print () {
     $result = ftrace_stop();
 
     if (php_sapi_name() == 'cli') {
-        $render = new \FTrace\Render\Cli();
+        $viewer = new HTML($result);
     } else {
-        echo "<pre>";
-        $render = new \FTrace\Render\Simple();
+        $viewer = new HTML($result);
     }
-    foreach($result['code']->getUnits() as $unit) {
-        $render->render($unit);
-    }
+    
+    $viewer->view();
 }
 
 function clearOpcodeCache () {
