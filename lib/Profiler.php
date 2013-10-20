@@ -79,7 +79,7 @@ class Profiler {
 
         $this->_code->pushCode($obTrace);
 
-        $str = "\n";$str .= basename($obTrace->getFile());$str .= " : ";$str .= $obTrace->getLine();$str .= " (depth = " . count($obTrace->getTraceSource()) . ") : "; $str .= $obTrace->getLineView(); $str .= " "; $str .= (count($obTrace->getArgs())) ? json_encode($obTrace->getArgs()) : "";
+        $str = "\n";$str .= basename($obTrace->getFile());$str .= " : ";$str .= $obTrace->getLine();$str .= " (depth = " . count($obTrace->getTraceSource()) . ") : "; $str .= $obTrace->getLineView(); $str .= " "; $str .= (is_array($obTrace->getArgs())) ? json_encode($obTrace->getArgs()) : "";
         $this->_result['debug'][] = $str;
 
         $this->_tickSetFinishTime();

@@ -28,7 +28,7 @@ function ftrace_print () {
     } else {
         $viewer = new HTML($result);
     }
-    
+
     $viewer->view();
 }
 

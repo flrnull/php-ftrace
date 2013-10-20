@@ -5,7 +5,7 @@
     height: 50px;
     padding: 0;
     margin: 0;
-    position: absolute;
+    position: fixed;
     bottom: 0;
     left: 0;
   }
@@ -52,6 +52,8 @@
       <span>Code time: <?php $this->_timeFormat($codeTime); ?>s</span>
       &nbsp;
       <span>Profiler time: <?php $this->_timeFormat($profileTime); ?>s</span>
+      &nbsp;
+      <span>Action count: <?php echo $codeCount; ?></span>
     </div>
   </div>
 
@@ -75,9 +77,9 @@
     $(".js-root-toggle").on('click', function() {
       var rootDiv = $('.ftrace-wrapper');
       if (rootDiv.data('toggle')) {
-        $('.ftrace-wrapper').css('height', '50px').data('toggle', 0);
+        $('.ftrace-wrapper').css({'height': '50px', 'position': 'fixed'}).data('toggle', 0);
       } else {
-        $('.ftrace-wrapper').css('height', '100%').data('toggle', 1);
+        $('.ftrace-wrapper').css({'height': '100%', 'position': 'absolute'}).data('toggle', 1);
       }
     });
   }
