@@ -5,10 +5,12 @@
  */
 
 include_once __DIR__ . '/Profiler.php';
-include_once __DIR__ . '/Viewer/HTML.php';
+include_once __DIR__ . '/Viewer/HTML/HTML.php';
+include_once __DIR__ . '/Viewer/Cli/Cli.php';
 
 use FTrace\Profiler;
 use FTrace\Viewer\HTML;
+use FTrace\Viewer\Cli;
 
 function ftrace ($depthLimit = null) {
     clearOpcodeCache();
@@ -24,7 +26,7 @@ function ftrace_print () {
     $result = ftrace_stop();
 
     if (php_sapi_name() == 'cli') {
-        $viewer = new HTML($result);
+        $viewer = new Cli($result);
     } else {
         $viewer = new HTML($result);
     }
